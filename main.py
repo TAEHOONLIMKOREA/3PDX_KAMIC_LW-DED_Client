@@ -1,14 +1,11 @@
 from flask import jsonify
-from modules import InfluxHepler
 import pandas as pd
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton
+from datetime import datetime
 import requests
 import threading
 import sys
 import time
-
-
-flask_app = Flask(__name__)
 
 global running 
 
@@ -20,36 +17,57 @@ def connection_test():
     }
 
     # 서버 B의 엔드포인트 URL
-    url = 'http://localhost:5001/receive_data'
+    url = 'http://localhost:5001/connection_test'
 
     # POST 요청으로 데이터 전송
     response = requests.post(url, json=data)
     print("Send data")
 
-    return jsonify({
-        'status': 'success',
-        'response_from_server_b': response.json()
-    })
-
 
 def read_csv_in_chunks(file_path, chunk_size=100):
+    global running
+    running = True
     df = pd.read_csv(file_path)
     for start in range(0, len(df), chunk_size):
-        yield df[start:start + chunk_size].to_dict(orient='records')
+        if running is True:
+            yield df[start:start + chunk_size].to_dict(orient='records')
 
 
-def send_DED_data():
+def StartDataStreamDED():
     # 서버 B의 엔드포인트 URL
-    url = 'http://localhost:5000/InputDataDED'
+    url = 'http://localhost:5001/StartDataStreamDED'
     csv_file_path = 'Data/Processed_Sample_data.csv'
     for chunk in read_csv_in_chunks(csv_file_path):
         # POST 요청으로 데이터 전송
         response = requests.post(url, json=chunk)
         if response.status_code != 200:
-            return jsonify({"status": "error", "message": "Failed to send data"}), 500
+            print("status: error, message: Failed to send data")
+            return
         time.sleep(1)
         print("success")
+        
 
+def SendInitBuildSignal():
+    url = 'http://localhost:5001/SetStartBuildSignal'
+    current_time = datetime.utcnow()
+    current_time = current_time.strftime('%Y%m%d_%H%M')
+    data = {
+        'BP_DATETIME': current_time,
+        'WORKER': '지성훈'
+    }
+    response = requests.post(url, json=data)
+    rtn = response.json()
+    print(rtn['message'])
+
+
+def SendFinishBuildSignal():
+    url = 'http://localhost:5001/SetFinishBuildSignal'
+    current_time = datetime.utcnow()
+    current_time = current_time.strftime('%Y%m%d_%H%M')
+    data = { 'BP_FinishTime': current_time }
+    response = requests.post(url, json=data)
+    rtn = response.json()
+    print(rtn['message'])
 
 class MyApp(QWidget):
     def __init__(self):
@@ -79,14 +97,14 @@ class MyApp(QWidget):
         connection_test()
 
     def start_streaming(self):
-        self.thread = threading.Thread(target=send_DED_data)
-        self.thread.start()
-        
+        SendInitBuildSignal()
+        self.thread = threading.Thread(target=StartDataStreamDED)
+        self.thread.start()        
         
     def stop_streaming(self):
-        
-        
-        
+        global running
+        running = False
+        SendFinishBuildSignal()
         
         print("Loop stopped.")
 
