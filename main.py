@@ -1,13 +1,15 @@
 from flask import jsonify
 import pandas as pd
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import threading
 import sys
 import time
 
 global running 
+base_url = 'http://keties.iptime.org:55001'
+# base_url = 'http://localhost:5001'
 
 def connection_test():
     # 서버 B로 보낼 데이터
@@ -16,11 +18,12 @@ def connection_test():
         'key2': 'value2'
     }
 
-    # 서버 B의 엔드포인트 URL
-    url = 'http://localhost:5001/connection_test'
+    # 서버 B의 엔드포인트 URL    
+    url = base_url + '/connection_test'
 
     # POST 요청으로 데이터 전송
     response = requests.post(url, json=data)
+    print(response.json())
     print("Send data")
 
 
@@ -35,7 +38,7 @@ def read_csv_in_chunks(file_path, chunk_size=100):
 
 def StartDataStreamDED():
     # 서버 B의 엔드포인트 URL
-    url = 'http://localhost:5001/StartDataStreamDED'
+    url = base_url + '/StartDataStreamDED'
     csv_file_path = 'Data/Processed_Sample_data.csv'
     for chunk in read_csv_in_chunks(csv_file_path):
         # POST 요청으로 데이터 전송
@@ -48,9 +51,11 @@ def StartDataStreamDED():
         
 
 def SendInitBuildSignal():
-    url = 'http://localhost:5001/SetStartBuildSignal'
-    current_time = datetime.utcnow()
-    current_time = current_time.strftime('%Y%m%d_%H%M')
+    url = base_url + '/SetStartBuildSignal'
+    utc_now = datetime.utcnow()
+    # UTC 시간을 한국 시간으로 변환 (UTC+9)
+    kst_time = utc_now + timedelta(hours=9)
+    current_time = kst_time.strftime('%Y%m%d_%H%M')
     data = {
         'BP_DATETIME': current_time,
         'WORKER': '지성훈'
@@ -61,9 +66,11 @@ def SendInitBuildSignal():
 
 
 def SendFinishBuildSignal():
-    url = 'http://localhost:5001/SetFinishBuildSignal'
-    current_time = datetime.utcnow()
-    current_time = current_time.strftime('%Y%m%d_%H%M')
+    url = base_url + '/SetFinishBuildSignal'
+    utc_now = datetime.utcnow()
+    # UTC 시간을 한국 시간으로 변환 (UTC+9)
+    kst_time = utc_now + timedelta(hours=9)
+    current_time = kst_time.strftime('%Y%m%d_%H%M')
     data = { 'BP_FinishTime': current_time }
     response = requests.post(url, json=data)
     rtn = response.json()
