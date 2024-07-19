@@ -38,7 +38,7 @@ def read_csv_in_chunks(file_path, chunk_size=100):
 
 def StartDataStreamDED():
     # 서버 B의 엔드포인트 URL
-    url = base_url + '/StartDataStreamDED'
+    url = base_url + '/GetDataStreamDED'
     csv_file_path = 'Data/Processed_Sample_data.csv'
     for chunk in read_csv_in_chunks(csv_file_path):
         # POST 요청으로 데이터 전송
@@ -51,7 +51,7 @@ def StartDataStreamDED():
         
 
 def SendInitBuildSignal():
-    url = base_url + '/SetStartBuildSignal'
+    url = base_url + '/GetStartBuildSignal'
     utc_now = datetime.utcnow()
     # UTC 시간을 한국 시간으로 변환 (UTC+9)
     kst_time = utc_now + timedelta(hours=9)
@@ -66,7 +66,7 @@ def SendInitBuildSignal():
 
 
 def SendFinishBuildSignal():
-    url = base_url + '/SetFinishBuildSignal'
+    url = base_url + '/GetFinishBuildSignal'
     utc_now = datetime.utcnow()
     # UTC 시간을 한국 시간으로 변환 (UTC+9)
     kst_time = utc_now + timedelta(hours=9)
