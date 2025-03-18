@@ -8,7 +8,7 @@ import sys
 import time
 
 global running 
-base_url = 'http://keties.iptime.org:58090'
+base_url = 'http://keties.iptime.org:53000'
 # base_url = 'http://localhost:5001'
 # base_url = 'http://112.222.93.10:55001'
 

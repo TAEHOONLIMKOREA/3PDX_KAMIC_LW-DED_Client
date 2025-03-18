@@ -35,9 +35,9 @@ def read_csv_in_chunks(file_path, chunk_size=100):
             yield df[start:start + chunk_size].to_dict(orient='records')
 
 
-def StartDataStreamDED():
+def StartDataStream():
     # 서버 B의 엔드포인트 URL
-    url = base_url + '/StartDataStreamDED'
+    url = base_url + '/StartDataStream'
     csv_file_path = 'Data/Processed_Sample_data.csv'
     for chunk in read_csv_in_chunks(csv_file_path):
         # POST 요청으로 데이터 전송
@@ -104,7 +104,7 @@ class MyApp(QWidget):
 
     def start_streaming(self):
         SendInitBuildSignal()
-        self.thread = threading.Thread(target=StartDataStreamDED)
+        self.thread = threading.Thread(target=StartDataStream)
         self.thread.start()        
         
     def stop_streaming(self):
